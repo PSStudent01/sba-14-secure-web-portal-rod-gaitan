@@ -1,33 +1,52 @@
-const mongoose = require('mongoose'); // imports mongoose library to be able to talk to MongoDB/Atlas.
+const mongoose = require('mongoose'); // Imports 'mongoose' for the file to use to create the User schema
+const bcrypt = require('bcrypt'); // Imports bcrypt, which is the library that handles password HASHING
 
-const UserSchema = new mongoose.Schema({ // this creates a new schema to define what a 'User' document looks like in the database.
-  email: { //   defining the 'email' field as...
-    type: String,  // values must be of text format 
-    required: true, // can not be left empty.  every user MUST have an email
-    unique: true, // no 2 documents can have the same email. no two users can share the same email
-    lowercase: true, // values cannot be anything other than lowercase, anything else will be automatically lowercased
-    trim: true // cannot have any trailspacing. Having trail spaces will cause mongoose to automatically remove them
+const userSchema = new mongoose.Schema({ // creates a new schema/blueprint for the user that defines the shape of each document in MongoDB.
+  username: {
+    type: String,
+    trim: true
+    // Not required — GitHub users may not have one
   },
-  password: {  //   defining the 'password' field as...
-    type: String,  // values must be of text format 
-                    // Notice it's NOT required, that's bc GitHub users won't have a pwd to begin with, and therefore we can't enforce it
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true
   },
-  githubId: {  //   defining the 'githubId' field as...
-    type: String,  // values must be of text format 
-                    // This field stores the unique ID that GitHub assigns to every user. Notice it's NOT required, that's bc local users (which login in with email/password)...
-                    // ... won't have a githubId to begin with, and therefore we can't enforce it
+  password: {
+    type: String,
+    // Not required — GitHub users won't have one
+  },
+  githubId: {
+    type: String,
+    // Not required — local users won't have one
   }
-}, { timestamps: true }); // - this tells Mongoose to automatically add 2 fields to every user:
-                         // -- createdAt - when the user account was created
-                        // -- updatedAt - when it was last modified
+}, { timestamps: true }); // This 2nd argument closes off the schema definition
+                          // - 'timestamps:' when set to true, it tells Mongoose to automatically add 2 fields to every document:
+                          // -- 'createdAt'
+                          // -- 'updatedAt'
 
-module.exports = mongoose.model('User', UserSchema);  // - <mongoose.model('User', UserSchema)> =  takes the schema and creates an actual Model from it that can interact 
-                                                      //  ...with the DB to manipulate users through CRUD   
-                                                      // - <module.exports> = makes this model available to other files in the project that are requiring it
+// Pre-save hook to hash password (reused from Lab 14.1)
+userSchema.pre('save', async function() { // this registers a pre-save hook, a function that automatically runs before any user document is saved to the database.
+                                          // In newer versions of Mongoose, 'next' is not needed — Mongoose handles continuation automatically with async functions.
+  if (!this.isModified('password') || !this.password) return; // this checks if the password field was changed. IF it wasn't, THEN it skips the hashing process and moves on.
+                                                               // Also checks if password exists at all — GitHub users won't have one, so we skip hashing entirely for them.
 
-/*
-VIP Note:
-- This file defines what a "User" looks like in the database. It's flexible enough to handle both types of users:
--- 1) someone who registers with email/password AND
--- 2) someone who logs in through GitHub.
-*/
+  const salt = await bcrypt.genSalt(10); // this generates a salt, which is a random string added to the password before hashing to make it more secure.
+                                         // 10 is the number of rounds, which controls how complex the salt is.
+                                         // the more rounds, the more secure at the expense of speed
+  this.password = await bcrypt.hash(this.password, salt); // this takes the plain text password, combines it with the salt, and hashes it.
+                                                          // Then overwrites this.password with the resulting hash so that's what gets saved.
+});
+
+// Instance method to check password (reused from Lab 14.1)
+userSchema.methods.isCorrectPassword = async function(incomingPassword) { // Adds a custom method to every user document.
+  return await bcrypt.compare(incomingPassword, this.password); // When the method is called, it uses 'bcrypt.compare' to check if the plain text 'incomingPassword' matches the stored hash.
+                                                                // ...then returns true or false.
+};
+
+const User = mongoose.model('User', userSchema); // this creates the actual 'User' model from the schema. This MODEL is what it uses to interact with the 'users' collection in MongoDB.
+                                                 // mental note: 'User' schema converts into > 'User' model so that we can use this model to talk to > 'users' collection.
+
+module.exports = User; // it exports the 'User' model so other files like the routes can import and use it.
