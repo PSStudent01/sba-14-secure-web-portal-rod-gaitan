@@ -4,6 +4,7 @@ const router = express.Router(); // this creates a 'router object'
                                  // this is what it exports and mounts in 'server.js' at /api/users.
 const User = require('../models/User'); // this imports the 'User' model so you can query and create users in the database.
 const { signToken } = require('../utils/auth'); // imports the signToken utility so it can issue JWTs on successful login
+const passport = require('../config/passport'); // imports the configured passport instance for GitHub OAuth routes
 
 // Registration Route - POST /api/users/register
 router.post('/register', async (req, res) => { // Defines a POST route at /register.
@@ -57,6 +58,43 @@ router.post('/login', async (req, res) => { // this defines a POST route at /log
   }
 });
 
+/****************************** For Lssn 4 ********************************************/
+// I) First route - Start the OAuth flow - GET /api/users/auth/github
+// When a user visits this URL, they will be redirected to GitHub to log in.
+router.get(     // Defines a GET route at '/auth/github'. 
+  '/auth/github', // Since the router is mounted at /api/users in 'server.js', the full path then becomes '/api/users/auth/github'. 
+                 // Ultimatlely, this is the URL a user clicks when they want to "Login with GitHub."
+  passport.authenticate('github', { scope: ['user:email'] }) // this line does 2 things simultaneously:
+                                                            // 1) "passport.authenticate('github')"" = tells passport to start the 'GitHub OAuth flow'...
+                                                            // It automatically redirects the user to 'GitHub's login page'. You don't have to build that redirect yourself 
+                                                            // since passport does it automatically for you.
+                                                            // 2) "scope: ['user:email']" = tells GitHub what permissions we need. In this case we're requesting access to the
+                                                            // user's email address. Without this, GitHub will not share it with user.
+);
 
+// II) Second route - Handle GitHub's callback
+// The callback route that GitHub redirects to after the user approves - GET /api/users/auth/github/callback
+router.get(    // Defines a GET route at '/auth/github/callback'.  It must match exactly what you put in your GitHub OAuth App settings and your .env file.              
+  '/auth/github/callback', // Since the router is mounted at /api/users in 'server.js', the full path then becomes '/api/users/auth/github/callback'
+                           // This is the URL we specified GitHub to send the user back to AFTER they approve or deny the login. 
+  passport.authenticate('github', {  // this runs passport's GitHub authentication again on the way back. 
+                                    // But this time passport takes the temporary code 'GitHub sent back' and CHNAGES it for the user's 'actual profile data'.
+    failureRedirect: '/login', // IF the user denied access on GitHub or something went wrong, this redirects user to /login to try again.
+    session: false //  this tells passport not to use sessions. 
+                  // Normally passport stores the 'logged in user' in a 'session (like a cookie)', but since we're using JWTs instead, we don't need sessions at all! 
+                  // While this is optional it keeps things cleaner.
+  }),
+  (req, res) => { // middleware function that only runs if 'passport' authentication succeeded. 
+                // At this point passport has already found or created the user in MongoDB database via the 'verify callback in passport.js' and attached it to 'req.user'.
+
+    const token = signToken(req.user);  // this where a new JWT is issued to the user. it sses our 'signToken' utility from 'utils/auth.js' to create a 'JWT' for this user. 
+                                        // 'req.user' contains the 'user' object that passport attached, the same one that was returned by done(null, user) in passport.js.
+    // Redirect the user to the frontend with the token as a query parameter
+    res.redirect(`http://localhost:3000?token=${token}`); // this redirects the user to the frontend with their JWT token attached as a query parameter in the URL. 
+                                                          // So ITC, the URL syntax maybe somrhing like http://localhost:3000?token=eyJhbGci...
+                                                          // The frontend app (running on port 3000 NOT 5000) can then grab that token from the URL and store it. 
+                                                          // ***Since there is no real frontend here, this just simulates what would happen in a real app.***
+  }
+);
 
 module.exports = router; // exports the router so server.js can import and mount it
