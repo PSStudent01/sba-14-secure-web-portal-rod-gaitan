@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema({ // this creates a new schema to define 
                     // ... won't have a githubId to begin with, and therefore we can't enforce it
   }
 }, { timestamps: true }); // - this tells Mongoose to automatically add 2 fields to every user:
-                         // -- createdAt - when the account was created
+                         // -- createdAt - when the user account was created
                         // -- updatedAt - when it was last modified
 
 module.exports = mongoose.model('User', UserSchema);  // - <mongoose.model('User', UserSchema)> =  takes the schema and creates an actual Model from it that can interact 
