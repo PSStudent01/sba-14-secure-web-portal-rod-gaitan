@@ -1,0 +1,51 @@
+
+I)
+- Tesitng Task 3 by hitting the register and login endpoints in Thunderclient:
+
+
+Test 1 - Register:
+#
+POST http://localhost:5000/api/users/register
+#
+{
+  "username": "testuser",
+  "email": "test@email.com",
+  "password": ___HIDDEN____
+}
+#
+Status: 201 Created
+#
+RESPONSE:
+{
+  "username": "testuser",
+  "email": "test@email.com",
+  "_id": "69c8c1e72303f65d07ec23a2",
+  "createdAt": "2026-03-29T06:08:39.980Z",
+  "updatedAt": "2026-03-29T06:08:39.980Z",
+  "__v": 0
+}
+
+
+Test 2 – Log in – 1st time to generate token
+#
+POST http://localhost:5000/api/users/login
+#
+{
+  "email": "test@email.com",
+  "password": ___HIDDEN____
+}
+#
+Status: 200 OK
+#
+{
+  "token": ___HIDDEN____
+  "user": {
+    "_id": "69c8c1e72303f65d07ec23a2",
+    "email": "test@email.com"
+  }
+}
+
+[VIP NOTE:
+- Notice 
+-- that the password is nowhere in either response, indicating that the delete 'userToReturn.password' worked.
+-- I received back a token, indicating JWT is being signed and returned correctly]
