@@ -17,8 +17,17 @@ const UserSchema = new mongoose.Schema({ // this creates a new schema to define 
                     // This field stores the unique ID that GitHub assigns to every user. Notice it's NOT required, that's bc local users (which login in with email/password)...
                     // ... won't have a githubId to begin with, and therefore we can't enforce it
   }
-}, { timestamps: true }); // - thus tells Mongoose to automatically add 2 fields to every user:
+}, { timestamps: true }); // - this tells Mongoose to automatically add 2 fields to every user:
                          // -- createdAt - when the account was created
                         // -- updatedAt - when it was last modified
 
-module.exports = mongoose.model('User', UserSchema); 
+module.exports = mongoose.model('User', UserSchema);  // - <mongoose.model('User', UserSchema)> =  takes the schema and creates an actual Model from it that can interact 
+                                                      //  ...with the DB to manipulate users through CRUD   
+                                                      // - <module.exports> = makes this model available to other files in the project that are requiring it
+
+/*
+VIP Note:
+- This file defines what a "User" looks like in the database. It's flexible enough to handle both types of users:
+-- 1) someone who registers with email/password AND
+-- 2) someone who logs in through GitHub.
+*/
