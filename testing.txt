@@ -1,0 +1,367 @@
+//////////////////////////////////////////////////////////////////////////
+
+
+Testing
+
+#
+Test 1 - Register
+#
+POST http://localhost:5000/api/users/register
+#
+{
+  "username": "testuser",
+  "email": "test@email.com",
+  "password": "HIDDEN"
+}
+#
+Status: 201 Created
+Size: 167 Bytes
+Time: 435 ms
+#
+RESPONSE:
+{
+  "username": "testuser",
+  "email": "test@email.com",
+  "_id": "69c8c1e72303f65d07ec23a2",
+  "createdAt": "2026-03-29T06:08:39.980Z",
+  "updatedAt": "2026-03-29T06:08:39.980Z",
+  "__v": 0
+}
+
+
+#
+Test 2 – Log in – 1st time to generate token
+#
+POST thttp://localhost:5000/api/users/login
+#
+{
+  "email": "test@email.com",
+  "password": "HIDDEN"
+}
+#
+Status: 200 OK
+Size: 284 Bytes
+Time: 397 ms
+#
+{
+  "token": "eyJhbGciOi____HIDDEN____AizGLh4hL7qiR2qjB4T1uP991Q",
+  "user": {
+    "_id": "69c8c1e72303f65d07ec23a2",
+    "email": "test@email.com"
+  }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+Testing the GitHub OAuth flow:
+*
+node server.js
+1. Open your browser
+2. Go to this URL:
+*
+http://localhost:5000/api/users/auth/github
+
+
+//////////////////////////////////////////////////////////////////////////
+
+
+Testing all t all 5 bookmark endpoints in Thunder Client:
+
+# 
+1)
+
+Method: POST
+URL: http://localhost:5000/api/users/login
+#
+Body (JSON):
+*
+{
+  "email": "test@email.com",
+  "password": "HIDDEN"
+}
+#
+Header Key: Authorization
+Header Value: Bearer token
+#
+Status: 200 OK
+Size: 284 Bytes
+Time: 347 ms
+#
+{
+  "token": "eyJhbGci__HIDDEN___cmF21T-gg",
+  "user": {
+    "_id": "69c8c1e72303f65d07ec23a2",
+    "email": "test@email.com"
+  }
+}
+
+
+#
+2)
+Test 1 — Create a bookmark (POST)
+#
+Method: POST
+URL: http://localhost:5000/api/bookmarks
+Header: Authorization: Bearer token
+Body (JSON):
+{
+  "title": "Google",
+  "url": "https://www.google.com",
+  "description": "My favorite search engine"
+}
+#
+Status: 201 Created
+Size: 244 Bytes
+Time: 135 ms
+#
+{
+  "title": "Google",
+  "url": "https://www.google.com",
+  "description": "My favorite search engine",
+  "user": "69c8c1e72303f65d07ec23a2",
+  "_id": "69c9d41feb58e5d3a6eb3ea5",
+  "createdAt": "2026-03-30T01:38:39.677Z",
+  "updatedAt": "2026-03-30T01:38:39.677Z",
+  "__v": 0
+}
+
+#
+3)
+Test 2 — Get ALL bookmarks (GET)
+#
+Method: GET
+URL: http://localhost:5000/api/bookmarks
+Header: Authorization: Bearer token
+No body needed!
+#
+Status: 200 OK
+Size: 246 Bytes
+Time: 146 ms
+#
+[
+  {
+    "_id": "69c9d41feb58e5d3a6eb3ea5",
+    "title": "Google",
+    "url": "https://www.google.com",
+    "description": "My favorite search engine",
+    "user": "69c8c1e72303f65d07ec23a2",
+    "createdAt": "2026-03-30T01:38:39.677Z",
+    "updatedAt": "2026-03-30T01:38:39.677Z",
+    "__v": 0
+  }
+]
+
+#
+4)
+Test 3 — Get ONE bookmark (GET)
+#
+Method: GET
+URL: http://localhost:5000/api/bookmarks/69c9d41feb58e5d3a6eb3ea5
+Header: Authorization: Bearer token
+No body needed!
+#
+Status: 200 OK
+Size: 244 Bytes
+Time: 102 ms
+#
+{
+  "_id": "69c9d41feb58e5d3a6eb3ea5",
+  "title": "Google",
+  "url": "https://www.google.com",
+  "description": "My favorite search engine",
+  "user": "69c8c1e72303f65d07ec23a2",
+  "createdAt": "2026-03-30T01:38:39.677Z",
+  "updatedAt": "2026-03-30T01:38:39.677Z",
+  "__v": 0
+}
+
+#
+5)
+Test 4 — Update a bookmark (PUT)
+#
+Method: PUT
+URL: http://localhost:5000/api/bookmarks/69c9d41feb58e5d3a6eb3ea5
+Header: Authorization: Bearer token
+Body (JSON):
+{
+  "title": "Google Updated",
+  "url": "https://www.google.com",
+  "description": "Updated description"
+}
+#
+Status: 200 OK
+Size: 246 Bytes
+Time: 190 ms
+#
+{
+  "_id": "69c9d41feb58e5d3a6eb3ea5",
+  "title": "Google Updated",  <--------------{notice update!}
+  "url": "https://www.google.com",
+  "description": "Updated description", <--------------{notice update!}
+  "user": "69c8c1e72303f65d07ec23a2",
+  "createdAt": "2026-03-30T01:38:39.677Z",
+  "updatedAt": "2026-03-30T01:51:49.025Z",
+  "__v": 0
+}
+
+#
+6)
+Test 5 — Delete a bookmark (DELETE)
+#
+Method: DELETE
+URL: http://localhost:5000/api/bookmarks/69c9d41feb58e5d3a6eb3ea5
+Header: Authorization: Bearer token
+No body needed!
+#
+{
+  "message": "Bookmark deleted successfully"
+}
+#
+Status: 200 OK
+Size: 43 Bytes
+Time: 163 ms
+#
+{
+  "message": "Bookmark deleted successfully"
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+#
+1)
+
+Step 1 — Login as user 1 to get their token
+#
+Method: POST
+URL: http://localhost:5000/api/users/login
+Body (JSON):
+{
+  "email": "test@email.com",
+  "password": "HIDDEN"
+}
+#
+Copy user 1's token
+#
+Status: 200 OK
+Size: 284 Bytes
+Time: 247 ms
+#
+{
+  "token": "eyJhbGciOi__HIDDEN____drcVycWtp0",
+  "user": {
+    "_id": "69c8c1e72303f65d07ec23a2",
+    "email": "test@email.com"
+  }
+}
+
+2)
+Step 2 — Create a new bookmark as user 1
+#
+Method: POST
+URL: http://localhost:5000/api/bookmarks
+Header: Authorization: Bearer 1st user token
+Body (JSON):
+{
+  "title": "Google",
+  "url": "https://www.google.com",
+  "description": "My favorite search engine"
+}
+#
+Status: 201 Created
+Size: 244 Bytes
+Time: 177 ms
+#
+{
+  "title": "Google",
+  "url": "https://www.google.com",
+  "description": "My favorite search engine",
+  "user": "69c8c1e72303f65d07ec23a2",
+  "_id": "69c9dc3deb58e5d3a6eb3eb2", <-----------{new bookmark}
+  "createdAt": "2026-03-30T02:13:17.521Z",
+  "updatedAt": "2026-03-30T02:13:17.521Z",
+  "__v": 0
+}
+
+3)
+Step 3 — Register a second user
+#
+Method: POST
+URL: http://localhost:5000/api/users/register
+Body (JSON):
+{
+  "username": "testuser2",
+  "email": "test2@email.com",
+  "password": "HIDDEN"
+}
+#
+Status: 201 Created
+Size: 169 Bytes
+Time: 384 ms
+#
+{
+  "username": "testuser2",
+  "email": "test2@email.com",
+  "_id": "69c9d972eb58e5d3a6eb3eae",
+  "createdAt": "2026-03-30T02:01:22.370Z",
+  "updatedAt": "2026-03-30T02:01:22.370Z",
+  "__v": 0
+}
+
+
+4)
+
+Step 4 — Login as second user
+#
+Method: POST
+URL: http://localhost:5000/api/users/login
+Body (JSON):
+{
+  "email": "test2@email.com",
+  "password": "HIDDEN"
+}
+#
+Status: 200 OK
+Size: 287 Bytes
+Time: 249 ms
+#
+{
+  "token": "eyJhbGc__HIDDEN___FDVXxY8kE",
+  "user": {
+    "_id": "69c9d972eb58e5d3a6eb3eae",
+    "email": "test2@email.com"
+  }
+}
+
+
+5)
+#
+Method: GET
+URL: http://localhost:5000/api/bookmarks/69c9dc3deb58e5d3a6eb3eb2
+Header: Authorization: Bearer 2nd user Token
+No body needed!
+#
+{
+  "message": "Access denied — this bookmark belongs to another user"
+}
+#
+Status: 403 Forbidden
+Size: 69 Bytes
+Time: 901 ms
+#
+{
+  "message": "Access denied — this bookmark belongs to another user"
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+
+
