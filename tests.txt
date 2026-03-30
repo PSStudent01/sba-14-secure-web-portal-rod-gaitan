@@ -49,3 +49,20 @@ Status: 200 OK
 - Notice 
 -- that the password is nowhere in either response, indicating that the delete 'userToReturn.password' worked.
 -- I received back a token, indicating JWT is being signed and returned correctly]
+
+///////////////////////////////////////////////////////////////////////////
+
+Testing the GitHub OAuth flow:
+- run:
+*
+node server.js
+- You should get:
+MongoDB connected successfully
+Server running on port 5000
+- Note:
+-- Testing the GitHub OAuth flow is a little different from testing register/login — you can't test it in Postman/Thunder Client/etc, because it involves browser redirects.
+So we test it directly in your browser:
+1. Open your browser
+2. Go to this URL:
+*
+http://localhost:5000/api/users/auth/github
