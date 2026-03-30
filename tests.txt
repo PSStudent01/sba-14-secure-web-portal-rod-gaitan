@@ -66,3 +66,8 @@ So we test it directly in your browser:
 2. Go to this URL:
 *
 http://localhost:5000/api/users/auth/github
+
+
+///////////////////////////////////////////////////////////////////////////
+
+Testing all t all 5 bookmark endpoints in Thunder Client:
